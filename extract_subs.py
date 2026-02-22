@@ -50,7 +50,7 @@ def download_video(url: str, output_dir: Path, cookies_file: str | None = None) 
     video_temp = output_dir / "video_raw.mp4"
 
     print(f"Downloading video from {url}...")
-    yt = YouTube(url, client="IOS", cookies=cookies_file)
+    yt = YouTube(url, client="ANDROID_VR")
 
     # Best adaptive video stream <= 1080p
     video_streams = [
