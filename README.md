@@ -112,4 +112,4 @@ Close and reopen your terminal after `winget install Gyan.FFmpeg`. If still miss
 - Try `--interval 0.3` for denser sampling
 
 **Processing is slow**
-CPU-only inference is expected to be slow. A 20-minute video at 0.5s interval (~2400 frames) takes roughly 30–60 minutes depending on hardware.
+CPU-only inference is expected to be slow. A 20-minute video at 0.5s interval (~2400 frames) takes roughly 5-20 minutes depending on hardware.
