@@ -46,10 +46,13 @@ def download_video(url: str, output_dir: Path, browser: str | None = None, cooki
     """Download a YouTube video using yt-dlp."""
     output_path = output_dir / "video.mp4"
     print(f"Downloading video from {url}...")
+    # ios client doesn't support cookies; use tv_embedded (simpler n challenge) when cookies are needed
+    using_cookies = bool(cookies_file or browser)
+    player_client = "tv_embedded,web" if using_cookies else "ios,web"
     cmd = [
         sys.executable, "-m", "yt_dlp",
         "--ffmpeg-location", str(Path(FFMPEG).parent),
-        "--extractor-args", "youtube:player_client=ios,web",
+        "--extractor-args", f"youtube:player_client={player_client}",
         "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         "--merge-output-format", "mp4",
         "-o", str(output_path),
