@@ -72,6 +72,7 @@ Output is saved to `subtitles.txt` in the current folder by default.
 | `--interval / -i` | `0.5` | Frame sampling interval in seconds (lower = more accurate, slower) |
 | `--crop-ratio / -c` | `0.2` | Fraction of the frame bottom to scan for subtitles (0.2 = bottom 20%) |
 | `--keep-frames` | off | Keep extracted frames instead of deleting them |
+| `--browser / -b` | none | Browser to pull cookies from if YouTube blocks the download (`chrome`, `firefox`, `edge`) |
 
 ### Examples
 
@@ -106,6 +107,16 @@ Close and reopen your terminal. If still missing, restart your computer.
 
 **`ffmpeg` not found**
 Close and reopen your terminal after `winget install Gyan.FFmpeg`. If still missing, restart your computer.
+
+**YouTube says "Sign in to confirm you're not a bot"**
+Pass your browser cookies so YouTube sees a logged-in session. Make sure you are logged into YouTube in that browser first:
+
+```bash
+uv run extract_subs.py "https://youtube.com/watch?v=..." --browser chrome
+# or
+uv run extract_subs.py "https://youtube.com/watch?v=..." --browser firefox
+uv run extract_subs.py "https://youtube.com/watch?v=..." --browser edge
+```
 
 **Subtitles not being detected**
 - Try `--crop-ratio 0.25` or higher if subtitles appear in the upper part of the bottom region

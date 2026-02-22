@@ -42,21 +42,21 @@ def find_ffmpeg() -> str:
 FFMPEG = find_ffmpeg()
 
 
-def download_video(url: str, output_dir: Path) -> Path:
+def download_video(url: str, output_dir: Path, browser: str | None = None) -> Path:
     """Download a YouTube video using yt-dlp."""
     output_path = output_dir / "video.mp4"
     print(f"Downloading video from {url}...")
-    subprocess.run(
-        [
-            sys.executable, "-m", "yt_dlp",
-            "--ffmpeg-location", str(Path(FFMPEG).parent),
-            "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
-            "--merge-output-format", "mp4",
-            "-o", str(output_path),
-            url,
-        ],
-        check=True,
-    )
+    cmd = [
+        sys.executable, "-m", "yt_dlp",
+        "--ffmpeg-location", str(Path(FFMPEG).parent),
+        "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
+        "--merge-output-format", "mp4",
+        "-o", str(output_path),
+    ]
+    if browser:
+        cmd += ["--cookies-from-browser", browser]
+    cmd.append(url)
+    subprocess.run(cmd, check=True)
     print(f"Downloaded to {output_path}")
     return output_path
 
@@ -154,6 +154,7 @@ def main():
     parser.add_argument("--interval", "-i", type=float, default=0.5, help="Frame extraction interval in seconds (default: 0.5)")
     parser.add_argument("--crop-ratio", "-c", type=float, default=0.2, help="Bottom portion of frame to crop for subtitles (default: 0.2 = bottom 20%%)")
     parser.add_argument("--keep-frames", action="store_true", help="Keep extracted frames (default: clean up)")
+    parser.add_argument("--browser", "-b", default=None, help="Browser to pull cookies from if YouTube blocks the download (e.g. chrome, firefox, edge)")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(delete=not args.keep_frames) as tmp_dir:
@@ -162,7 +163,7 @@ def main():
             print(f"Frames will be kept in: {tmp_path}")
 
         # Step 1: Download
-        video_path = download_video(args.url, tmp_path)
+        video_path = download_video(args.url, tmp_path, args.browser)
 
         # Step 2: Extract frames
         frames = extract_frames(video_path, tmp_path, args.interval)
