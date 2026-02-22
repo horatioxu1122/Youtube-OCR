@@ -73,6 +73,7 @@ Output is saved to `subtitles.txt` in the current folder by default.
 | `--crop-ratio / -c` | `0.2` | Fraction of the frame bottom to scan for subtitles (0.2 = bottom 20%) |
 | `--keep-frames` | off | Keep extracted frames instead of deleting them |
 | `--browser / -b` | none | Browser to pull cookies from if YouTube blocks the download (`chrome`, `firefox`, `edge`) |
+| `--cookies-file` | none | Path to a `cookies.txt` file — more reliable than `--browser` on Windows |
 
 ### Examples
 
@@ -108,15 +109,23 @@ Close and reopen your terminal. If still missing, restart your computer.
 **`ffmpeg` not found**
 Close and reopen your terminal after `winget install Gyan.FFmpeg`. If still missing, restart your computer.
 
-**YouTube says "Sign in to confirm you're not a bot"**
-Pass your browser cookies so YouTube sees a logged-in session. Make sure you are logged into YouTube in that browser first:
+**YouTube says "Sign in to confirm you're not a bot" / DPAPI decryption error**
+
+Modern Chrome and Edge on Windows encrypt cookies in a way that yt-dlp cannot read. The most reliable fix is to export a `cookies.txt` file manually:
+
+1. Install the **[Get cookies.txt LOCALLY](https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc)** extension in Chrome or Edge
+2. Go to [youtube.com](https://youtube.com) and make sure you are logged in
+3. Click the extension icon → click **Export** → save the file as `cookies.txt` in the project folder
+4. Run:
 
 ```bash
-uv run extract_subs.py "https://youtube.com/watch?v=..." --browser chrome
-# or
-uv run extract_subs.py "https://youtube.com/watch?v=..." --browser firefox
-uv run extract_subs.py "https://youtube.com/watch?v=..." --browser edge
+uv run extract_subs.py "https://youtube.com/watch?v=..." --cookies-file cookies.txt
 ```
+
+> If you use Firefox, you can try `--browser firefox` directly (Firefox does not have the DPAPI encryption issue):
+> ```bash
+> uv run extract_subs.py "https://youtube.com/watch?v=..." --browser firefox
+> ```
 
 **Subtitles not being detected**
 - Try `--crop-ratio 0.25` or higher if subtitles appear in the upper part of the bottom region

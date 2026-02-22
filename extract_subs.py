@@ -42,7 +42,7 @@ def find_ffmpeg() -> str:
 FFMPEG = find_ffmpeg()
 
 
-def download_video(url: str, output_dir: Path, browser: str | None = None) -> Path:
+def download_video(url: str, output_dir: Path, browser: str | None = None, cookies_file: str | None = None) -> Path:
     """Download a YouTube video using yt-dlp."""
     output_path = output_dir / "video.mp4"
     print(f"Downloading video from {url}...")
@@ -53,7 +53,9 @@ def download_video(url: str, output_dir: Path, browser: str | None = None) -> Pa
         "--merge-output-format", "mp4",
         "-o", str(output_path),
     ]
-    if browser:
+    if cookies_file:
+        cmd += ["--cookies", cookies_file]
+    elif browser:
         cmd += ["--cookies-from-browser", browser]
     cmd.append(url)
     subprocess.run(cmd, check=True)
@@ -155,6 +157,7 @@ def main():
     parser.add_argument("--crop-ratio", "-c", type=float, default=0.2, help="Bottom portion of frame to crop for subtitles (default: 0.2 = bottom 20%%)")
     parser.add_argument("--keep-frames", action="store_true", help="Keep extracted frames (default: clean up)")
     parser.add_argument("--browser", "-b", default=None, help="Browser to pull cookies from if YouTube blocks the download (e.g. chrome, firefox, edge)")
+    parser.add_argument("--cookies-file", default=None, help="Path to a cookies.txt file for YouTube authentication (more reliable than --browser on Windows)")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(delete=not args.keep_frames) as tmp_dir:
@@ -163,7 +166,7 @@ def main():
             print(f"Frames will be kept in: {tmp_path}")
 
         # Step 1: Download
-        video_path = download_video(args.url, tmp_path, args.browser)
+        video_path = download_video(args.url, tmp_path, args.browser, args.cookies_file)
 
         # Step 2: Extract frames
         frames = extract_frames(video_path, tmp_path, args.interval)
