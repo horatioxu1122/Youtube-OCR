@@ -42,23 +42,33 @@ def find_ffmpeg() -> str:
 FFMPEG = find_ffmpeg()
 
 
-def download_video(url: str, output_dir: Path, browser: str | None = None, cookies_file: str | None = None) -> Path:
+def download_video(
+    url: str,
+    output_dir: Path,
+    browser: str | None = None,
+    cookies_file: str | None = None,
+    use_oauth: bool = False,
+) -> Path:
     """Download a YouTube video using yt-dlp."""
     output_path = output_dir / "video.mp4"
     print(f"Downloading video from {url}...")
-    # ios client doesn't support cookies; use android_vr when cookies are needed
-    # (android_vr avoids n challenge and supports cookie auth; tv_embedded was removed in newer yt-dlp)
-    using_cookies = bool(cookies_file or browser)
-    player_client = "android_vr,android,web" if using_cookies else "ios,web"
+    # OAuth2 and no-auth: use ios client (avoids n challenge entirely).
+    # Cookies (file/browser): only the web client accepts them, so let yt-dlp use its default.
+    if use_oauth or not (cookies_file or browser):
+        extractor_args = ["--extractor-args", "youtube:player_client=ios,web"]
+    else:
+        extractor_args = []  # let yt-dlp pick; web is the only client that takes cookies
     cmd = [
         sys.executable, "-m", "yt_dlp",
         "--ffmpeg-location", str(Path(FFMPEG).parent),
-        "--extractor-args", f"youtube:player_client={player_client}",
+        *extractor_args,
         "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         "--merge-output-format", "mp4",
         "-o", str(output_path),
     ]
-    if cookies_file:
+    if use_oauth:
+        cmd += ["--username", "oauth2", "--password", ""]
+    elif cookies_file:
         cmd += ["--cookies", cookies_file]
     elif browser:
         cmd += ["--cookies-from-browser", browser]
@@ -163,6 +173,7 @@ def main():
     parser.add_argument("--keep-frames", action="store_true", help="Keep extracted frames (default: clean up)")
     parser.add_argument("--browser", "-b", default=None, help="Browser to pull cookies from if YouTube blocks the download (e.g. chrome, firefox, edge)")
     parser.add_argument("--cookies-file", default=None, help="Path to a cookies.txt file for YouTube authentication (more reliable than --browser on Windows)")
+    parser.add_argument("--use-oauth", action="store_true", help="Authenticate via YouTube OAuth2 — one-time interactive setup, then cached for future runs")
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory(delete=not args.keep_frames) as tmp_dir:
@@ -171,7 +182,7 @@ def main():
             print(f"Frames will be kept in: {tmp_path}")
 
         # Step 1: Download
-        video_path = download_video(args.url, tmp_path, args.browser, args.cookies_file)
+        video_path = download_video(args.url, tmp_path, args.browser, args.cookies_file, args.use_oauth)
 
         # Step 2: Extract frames
         frames = extract_frames(video_path, tmp_path, args.interval)
