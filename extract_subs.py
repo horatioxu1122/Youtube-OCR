@@ -49,6 +49,7 @@ def download_video(url: str, output_dir: Path, browser: str | None = None, cooki
     cmd = [
         sys.executable, "-m", "yt_dlp",
         "--ffmpeg-location", str(Path(FFMPEG).parent),
+        "--extractor-args", "youtube:player_client=ios,web",
         "-f", "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080][ext=mp4]/best",
         "--merge-output-format", "mp4",
         "-o", str(output_path),
