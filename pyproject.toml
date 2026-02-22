@@ -9,6 +9,6 @@ dependencies = [
     "paddleocr==2.7.3",
     "paddlepaddle==2.6.2",
     "pillow>=12.1.1",
+    "pytubefix>=8.0",
     "setuptools>=82.0.0",
-    "yt-dlp>=2026.2.21",
 ]
